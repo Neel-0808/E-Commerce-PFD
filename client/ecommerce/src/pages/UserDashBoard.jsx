@@ -7,7 +7,8 @@ import LogoutButton from "../components/LogoutButton";
 const UserDashboard = () => {
   const [products, setProducts] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
-  // const userId = localStorage.getItem("userId");
+  const [cartCount, setCartCount] = useState(0);
+  const [showCartButton, setShowCartButton] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -35,8 +36,9 @@ const UserDashboard = () => {
         product_id: productId,
         quantity,
       });
-      alert("Product added to cart successfully!");
-      navigate(`/cart/${userId}`);
+
+      setCartCount((prev) => prev + 1);
+      setShowCartButton(true);
     } catch (error) {
       console.error("Error adding product to cart:", error);
       alert("Failed to add product to cart.");
@@ -49,8 +51,26 @@ const UserDashboard = () => {
 
   return (
     <div className="container-fluid bg-light min-vh-100 py-4">
-      <h2 className="text-center mb-4">All Products</h2>
-      <LogoutButton />
+      <div className="d-flex justify-content-between align-items-center mb-4">
+        <h2 className="text-center">All Products</h2>
+        <div>
+          <LogoutButton />
+          {showCartButton && (
+            <button
+              className="btn btn-warning ms-3 position-relative"
+              onClick={() => navigate("/cart/:userId")}
+            >
+              🛒 Cart{" "}
+              {cartCount > 0 && (
+                <span className="badge bg-danger position-absolute top-0 start-100 translate-middle">
+                  {cartCount}
+                </span>
+              )}
+            </button>
+          )}
+        </div>
+      </div>
+
       <div className="input-group mb-3 w-50 mx-auto">
         <input
           type="text"
@@ -61,6 +81,7 @@ const UserDashboard = () => {
         />
         <span className="input-group-text bg-primary text-white">Search</span>
       </div>
+
       <div className="row row-cols-1 row-cols-md-3 g-4">
         {filteredProducts.length > 0 ? (
           filteredProducts.map((product) => (
@@ -75,8 +96,7 @@ const UserDashboard = () => {
                 <div className="card-body d-flex flex-column">
                   <h5 className="card-title">{product.name}</h5>
                   <p className="card-text">
-                    <strong>Description:</strong>
-                    {product.description}
+                    <strong>Description:</strong> {product.description}
                   </p>
                   <p className="card-text">
                     <strong>Price:</strong> ₹{product.price}

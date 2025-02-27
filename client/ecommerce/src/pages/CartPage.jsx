@@ -1,12 +1,15 @@
-import { useEffect, useState } from "react";
 import axios from "axios";
-import { useNavigate } from "react-router-dom";
 import "bootstrap/dist/css/bootstrap.min.css";
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 const CartPage = () => {
   const [cartItems, setCartItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [shippingAddress, setShippingAddress] = useState("");
+  const [paymentMethod, setPaymentMethod] = useState("Credit Card");
+  const [orderPlaced, setOrderPlaced] = useState(false);
   const userId = localStorage.getItem("userId");
   const navigate = useNavigate();
 
@@ -22,7 +25,6 @@ const CartPage = () => {
     try {
       setLoading(true);
       const response = await axios.get(`http://127.0.0.1:8000/cart/${userId}`);
-      console.log("Fetched Cart Items:", response.data);
       setCartItems(response.data);
     } catch (error) {
       setError("Failed to fetch cart items");
@@ -33,9 +35,11 @@ const CartPage = () => {
   };
 
   const handleUpdateQuantity = async (itemId, quantity) => {
+    if (quantity < 1) return;
     try {
-      if (quantity < 1) return;
-      await axios.put(`http://127.0.0.1:8000/cart/${userId}/${itemId}?quantity=${quantity}`);
+      await axios.put(
+        `http://127.0.0.1:8000/cart/${userId}/${itemId}?quantity=${quantity}`
+      );
       fetchCartItems();
     } catch (error) {
       setError("Failed to update item quantity");
@@ -53,8 +57,48 @@ const CartPage = () => {
     }
   };
 
-  const handleCheckout = () => {
-    alert("Checkout process initiated!");
+  const calculateTotal = () => {
+    return cartItems
+      .reduce(
+        (acc, item) => acc + (item.product?.price || 0) * item.quantity,
+        0
+      )
+      .toFixed(2);
+  };
+
+  const handleCheckout = async () => {
+    if (!shippingAddress) {
+      alert("Please enter a shipping address.");
+      return;
+    }
+
+    const orderData = {
+      user_id: userId,
+      shipping_address: shippingAddress,
+      payment_method: paymentMethod,
+      items: cartItems.map((item) => ({
+        product_id: item.product_id,
+        product_name: item.product_name,
+        quantity: item.quantity,
+        price: item.product?.price || 0,
+      })),
+      total_amount: calculateTotal(),
+    };
+
+    try {
+      await axios.post(`http://127.0.0.1:8000/orders/${userId}`, orderData);
+
+      // Show success alert
+      alert("Order placed successfully!");
+      setOrderPlaced(true);
+      // Navigate to user dashboard after a short delay
+      setTimeout(() => {
+        navigate("/userdashboard");
+      }, 1000);
+    } catch (error) {
+      setError("Failed to complete checkout.");
+      console.error("Error during checkout:", error);
+    }
   };
 
   if (loading) return <p>Loading cart items...</p>;
@@ -63,55 +107,129 @@ const CartPage = () => {
   return (
     <div className="container mt-5">
       <h2 className="mb-4">Shopping Cart</h2>
+
+      {/* Back to Dashboard Button */}
+      <button
+        className="btn btn-secondary mb-3"
+        onClick={() => navigate("/userdashboard")}
+      >
+        ← Back to Dashboard
+      </button>
+
       {cartItems.length === 0 ? (
         <p>Your cart is empty.</p>
       ) : (
-        <div className="table-responsive">
-          <table className="table table-bordered">
-            <thead className="thead-light">
-              <tr>
-                <th>Product Name</th>
-                <th>Quantity</th>
-                <th>Price</th>
-                <th>Total</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {cartItems.map((item) => (
-                <tr key={item.id}>
-                  <td>{item.product_name}</td>
-                  <td>
-                    <input
-                      type="number"
-                      min="1"
-                      className="form-control"
-                      value={item.quantity}
-                      onChange={(e) =>
-                        handleUpdateQuantity(item.id, parseInt(e.target.value))
-                      }
-                    />
-                  </td>
-                  <td>₹{item.product?.price ?? 0}</td>
-                  <td>₹{((item.product?.price || 0) * item.quantity).toFixed(2)}</td>
-                  <td>
-                    <button
-                      className="btn btn-danger"
-                      onClick={() => handleRemoveItem(item.id)}
-                    >
-                      Remove
-                    </button>
-                  </td>
+        <>
+          {/* Cart Items Table */}
+          <div className="table-responsive">
+            <table className="table table-bordered">
+              <thead className="thead-light">
+                <tr>
+                  <th>Product Name</th>
+                  <th>Quantity</th>
+                  <th>Price</th>
+                  <th>Total</th>
+                  <th>Actions</th>
                 </tr>
-              ))}
+              </thead>
+              <tbody>
+                {cartItems.map((item) => (
+                  <tr key={item.id}>
+                    <td>{item.product_name}</td>
+                    <td>
+                      <input
+                        type="number"
+                        min="1"
+                        className="form-control"
+                        value={item.quantity}
+                        onChange={(e) =>
+                          handleUpdateQuantity(
+                            item.id,
+                            parseInt(e.target.value)
+                          )
+                        }
+                      />
+                    </td>
+                    <td>₹{item.product?.price ?? 0}</td>
+                    <td>
+                      ₹{((item.product?.price || 0) * item.quantity).toFixed(2)}
+                    </td>
+                    <td>
+                      <button
+                        className="btn btn-danger"
+                        onClick={() => handleRemoveItem(item.id)}
+                      >
+                        Remove
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          <h4 className="text-end">Total: ₹{calculateTotal()}</h4>
+
+          {/* Order Summary Table */}
+          <h5 className="mt-4">Order Summary</h5>
+          <table className="table table-bordered">
+            <tbody>
+              <tr>
+                <td>
+                  <strong>Total Products</strong>
+                </td>
+                <td>{cartItems.length}</td>
+              </tr>
+              <tr>
+                <td>
+                  <strong>Total Amount</strong>
+                </td>
+                <td>₹{calculateTotal()}</td>
+              </tr>
+              <tr>
+                <td>
+                  <strong>Payment Method</strong>
+                </td>
+                <td>{paymentMethod}</td>
+              </tr>
             </tbody>
           </table>
-          <div className="text-end">
-            <button className="btn btn-success" onClick={handleCheckout}>
+
+          {/* Shipping and Payment Section */}
+          <div className="mt-4">
+            <h5>Shipping Details</h5>
+            <input
+              type="text"
+              className="form-control mb-3"
+              placeholder="Enter shipping address"
+              value={shippingAddress}
+              onChange={(e) => setShippingAddress(e.target.value)}
+            />
+
+            <h5>Payment Method</h5>
+            <select
+              className="form-control mb-3"
+              value={paymentMethod}
+              onChange={(e) => setPaymentMethod(e.target.value)}
+            >
+              <option value="Credit Card">Credit Card</option>
+              <option value="Debit Card">Debit Card</option>
+              <option value="PayPal">PayPal</option>
+              <option value="Cash on Delivery">Cash on Delivery</option>
+            </select>
+
+            {/* Checkout Button */}
+            <button className="btn btn-success w-100" onClick={handleCheckout}>
               Proceed to Checkout
             </button>
+
+            {orderPlaced && (
+              <div className="alert alert-success mt-3" role="alert">
+                Your order has been placed successfully!
+              </div>
+            )}
           </div>
-        </div>
+        </>
       )}
     </div>
   );
