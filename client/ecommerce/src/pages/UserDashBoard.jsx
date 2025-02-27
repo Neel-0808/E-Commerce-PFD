@@ -2,11 +2,12 @@ import axios from "axios";
 import "bootstrap/dist/css/bootstrap.min.css";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import LogoutButton from "../components/LogoutButton";
 
 const UserDashboard = () => {
   const [products, setProducts] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
-  const userId = localStorage.getItem("userId");
+  // const userId = localStorage.getItem("userId");
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -22,11 +23,11 @@ const UserDashboard = () => {
 
   const handleAddToCart = async (productId, quantity = 1) => {
     const userId = localStorage.getItem("userId");
-    
+
     if (!userId) {
-        alert("User ID not found. Please log in again.");
-        navigate("/login");
-        return;
+      alert("User ID not found. Please log in again.");
+      navigate("/login");
+      return;
     }
 
     try {
@@ -49,6 +50,7 @@ const UserDashboard = () => {
   return (
     <div className="container-fluid bg-light min-vh-100 py-4">
       <h2 className="text-center mb-4">All Products</h2>
+      <LogoutButton />
       <div className="input-group mb-3 w-50 mx-auto">
         <input
           type="text"
@@ -71,10 +73,11 @@ const UserDashboard = () => {
                   style={{ height: "200px", objectFit: "contain" }}
                 />
                 <div className="card-body d-flex flex-column">
-                  <h5 className="card-title">
-                    {product.name}</h5>
+                  <h5 className="card-title">{product.name}</h5>
                   <p className="card-text">
-                    <strong>Description:</strong>{product.description}</p>
+                    <strong>Description:</strong>
+                    {product.description}
+                  </p>
                   <p className="card-text">
                     <strong>Price:</strong> ₹{product.price}
                   </p>

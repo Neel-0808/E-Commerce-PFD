@@ -1,9 +1,9 @@
 // SellerDashboard.jsx
+import axios from "axios";
 import { useContext, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
-import { AuthContext } from "../context/AuthContext";
 import LogoutButton from "../components/LogoutButton";
+import { AuthContext } from "../context/AuthContext";
 
 const SellerDashboard = () => {
   const [products, setProducts] = useState([]);
@@ -19,7 +19,9 @@ const SellerDashboard = () => {
     const fetchProducts = async () => {
       try {
         if (sellerId) {
-          const response = await axios.get(`http://127.0.0.1:8000/products/seller/${sellerId}`);
+          const response = await axios.get(
+            `http://127.0.0.1:8000/products/seller/${sellerId}`
+          );
           setProducts(response.data);
           console.log("Fetched products for seller:", sellerId);
         } else {
@@ -27,15 +29,14 @@ const SellerDashboard = () => {
           navigate("/login");
         }
       } catch (error) {
-        setError("Error fetching products for this seller.");
+        setError("No Products availabe in this store");
         console.error("Error fetching seller products", error);
       } finally {
         setLoading(false);
       }
     };
     fetchProducts();
-}, [sellerId]);
-
+  }, [sellerId]);
 
   const handleAddProduct = () => {
     if (sellerId) {

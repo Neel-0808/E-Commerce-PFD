@@ -6,11 +6,13 @@ const HomePage = () => {
       {/* Navbar */}
       <nav className="navbar navbar-expand-lg navbar-dark bg-dark">
         <div className="container">
-          <a className="navbar-brand" href="#">E-Commerce</a>
-          <button 
-            className="navbar-toggler" 
-            type="button" 
-            data-bs-toggle="collapse" 
+          <a className="navbar-brand" href="#">
+            E-Commerce
+          </a>
+          <button
+            className="navbar-toggler"
+            type="button"
+            data-bs-toggle="collapse"
             data-bs-target="#navbarNav"
           >
             <span className="navbar-toggler-icon"></span>
@@ -18,10 +20,17 @@ const HomePage = () => {
           <div className="collapse navbar-collapse" id="navbarNav">
             <ul className="navbar-nav ms-auto">
               <li className="nav-item">
-                <a className="nav-link btn btn-outline-light me-2" href="/login">Sign In</a>
+                <a
+                  className="nav-link btn btn-outline-light me-2"
+                  href="/login"
+                >
+                  Sign In
+                </a>
               </li>
               <li className="nav-item">
-                <a className="nav-link btn btn-primary" href="/register">Sign Up</a>
+                <a className="nav-link btn btn-primary" href="/register">
+                  Sign Up
+                </a>
               </li>
             </ul>
           </div>
@@ -33,7 +42,9 @@ const HomePage = () => {
         <div className="container">
           <h1>Welcome to Our E-Commerce Store</h1>
           <p className="lead">Shop the best products at the best prices</p>
-          <a href="/shop" className="btn btn-light btn-lg">Start Shopping</a>
+          <a href="/login" className="btn btn-light btn-lg">
+            Start Shopping
+          </a>
         </div>
       </header>
 

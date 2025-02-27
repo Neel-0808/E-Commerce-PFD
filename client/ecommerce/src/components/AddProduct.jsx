@@ -1,8 +1,8 @@
 // AddProduct.jsx
-import { useState, useContext, useEffect } from "react";
 import axios from "axios";
-import { useNavigate } from "react-router-dom";
 import "bootstrap/dist/css/bootstrap.min.css";
+import { useContext, useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { AuthContext } from "../context/AuthContext";
 
 const AddProduct = () => {
@@ -35,7 +35,7 @@ const AddProduct = () => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value.trim() }));
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleSubmit = async (e) => {
@@ -59,12 +59,14 @@ const AddProduct = () => {
       const response = await axios.post(
         `http://127.0.0.1:8000/products/${sellerId}`,
         formData,
+        console.log(response.data),
         { headers: { "Content-Type": "application/json" } }
       );
       alert("Product added successfully!");
       navigate("/sellerdashboard");
     } catch (error) {
-      const backendError = error.response?.data?.detail || "Failed to add product.";
+      const backendError =
+        error.response?.data?.detail || "Failed to add product.";
       setError(backendError);
     } finally {
       setLoading(false);
